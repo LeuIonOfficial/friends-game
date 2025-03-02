@@ -16,7 +16,7 @@ const TeamContext = createContext<TeamContextType | undefined>(undefined);
 export function TeamProvider({ children }: { children: React.ReactNode }) {
   const [team1, setTeam1] = useState("Team 1");
   const [team2, setTeam2] = useState("Team 2");
-  const deviceId = useDeviceId();
+  const { deviceId } = useDeviceId();
 
   return (
     <TeamContext.Provider
