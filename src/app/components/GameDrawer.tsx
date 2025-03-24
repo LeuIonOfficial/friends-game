@@ -1,4 +1,5 @@
 'use client';
+import { memo } from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { useTeams } from '@/app/context/TeamContext';
@@ -12,7 +13,13 @@ interface GameDrawerProps {
   teamScores: { team1: number; team2: number };
 }
 
-export default function GameDrawer({ isOpen, onNextRound, teamTurn, teamScores }: GameDrawerProps) {
+// Using memo to prevent unnecessary re-renders
+const GameDrawer = memo(function GameDrawer({
+  isOpen,
+  onNextRound,
+  teamTurn,
+  teamScores,
+}: GameDrawerProps) {
   const { team1, team2 } = useTeams();
   const { clearDeviceId } = useDeviceId();
 
@@ -62,4 +69,6 @@ export default function GameDrawer({ isOpen, onNextRound, teamTurn, teamScores }
       </DrawerContent>
     </Drawer>
   );
-}
+});
+
+export default GameDrawer;
