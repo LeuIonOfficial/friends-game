@@ -1,5 +1,7 @@
-"use client";
-import { useState, useEffect } from "react";
+'use client';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { debounce } from 'lodash';
+
 interface Person {
   id: number;
   name: string;
@@ -19,16 +21,16 @@ interface RoundScores {
   };
 }
 
+// Game configuration constants
+const ROUND_DURATION = 60; // seconds
+const MAX_ROUNDS = 10;
+
 export function useGameLogic(gameStarted: boolean, deviceId: string) {
   const [persons, setPersons] = useState<Person[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [timeLeft, setTimeLeft] = useState<number>(60);
+  const [timeLeft, setTimeLeft] = useState<number>(ROUND_DURATION);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [teamTurn, setTeamTurn] = useState<number>(1);
-  const [teamScores, setTeamScores] = useState<TeamScores>({
-    team1: 0,
-    team2: 0,
-  });
   const [roundScores, setRoundScores] = useState<RoundScores>({
     1: {
       team1Score: 0,
@@ -36,29 +38,56 @@ export function useGameLogic(gameStarted: boolean, deviceId: string) {
     },
   });
   const [currentRound, setCurrentRound] = useState<number>(1);
-  const [remainingPersons, setRemainingPersons] = useState<Set<number>>(
-    new Set(),
-  );
+  const [remainingPersons, setRemainingPersons] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState<boolean>(true);
+  const [isGameOver, setIsGameOver] = useState<boolean>(false);
 
+  // Compute total team scores from round scores
+  const teamScores = useMemo<TeamScores>(() => {
+    return Object.values(roundScores).reduce(
+      (total, round) => {
+        return {
+          team1: total.team1 + round.team1Score,
+          team2: total.team2 + round.team2Score,
+        };
+      },
+      { team1: 0, team2: 0 }
+    );
+  }, [roundScores]);
+
+  // Load persons data with proper cleanup
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchPersons() {
       try {
-        const response = await fetch("/api/persons");
+        const response = await fetch('/api/persons');
         const data: Person[] = await response.json();
-        setPersons(data);
-        setRemainingPersons(new Set(data.map((p) => p.id)));
-        setLoading(false);
+
+        if (isMounted) {
+          setPersons(data);
+          setRemainingPersons(new Set(data.map((p) => p.id)));
+          setLoading(false);
+        }
       } catch (error) {
-        console.error("Failed to fetch persons:", error);
+        console.error('Failed to fetch persons:', error);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
+
     fetchPersons();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  // Timer effect with proper cleanup
   useEffect(() => {
-    if (persons.length === 0) return;
-    if (!gameStarted) return;
+    if (persons.length === 0 || !gameStarted || timeLeft === 0) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -71,66 +100,102 @@ export function useGameLogic(gameStarted: boolean, deviceId: string) {
       });
     }, 1000);
 
+    // Cleanup timer on unmount or when dependencies change
     return () => clearInterval(timer);
-  }, [persons, teamTurn, gameStarted]);
+  }, [persons.length, gameStarted, timeLeft]);
 
-  const handleCorrectGuess = () => {
-    if (persons.length === 0) return;
+  // Debounced function to update scores on server
+  const debouncedScoreUpdate = useCallback(
+    debounce(async (roundNumber: number, scores: { team1Score: number; team2Score: number }) => {
+      try {
+        await fetch('/api/game', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            deviceId,
+            roundNumber,
+            team1Score: scores.team1Score,
+            team2Score: scores.team2Score,
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to update scores:', error);
+      }
+    }, 2000),
+    [deviceId]
+  );
 
+  // Effect to update server when round scores change
+  useEffect(() => {
+    if (gameStarted && roundScores[currentRound]) {
+      debouncedScoreUpdate(currentRound, {
+        team1Score: roundScores[currentRound].team1Score,
+        team2Score: roundScores[currentRound].team2Score,
+      });
+    }
+  }, [roundScores, currentRound, debouncedScoreUpdate, gameStarted]);
+
+  // Check for game end conditions
+  useEffect(() => {
+    if (gameStarted && (remainingPersons.size === 0 || currentRound > MAX_ROUNDS)) {
+      setIsGameOver(true);
+    }
+  }, [remainingPersons.size, currentRound, gameStarted]);
+
+  // Optimized function to handle correct guesses
+  const handleCorrectGuess = useCallback(() => {
+    if (persons.length === 0 || timeLeft === 0) return;
+
+    // Update remaining persons
     setRemainingPersons((prev) => {
       const newSet = new Set(prev);
       newSet.delete(persons[currentIndex].id);
       return newSet;
     });
 
-    setTeamScores((prev) => ({
-      ...prev,
-      [teamTurn === 1 ? "team1" : "team2"]:
-        prev[teamTurn === 1 ? "team1" : "team2"] + 1,
-    }));
+    // Update round scores
+    setRoundScores((prev) => {
+      const teamKey = teamTurn === 1 ? 'team1Score' : 'team2Score';
+      return {
+        ...prev,
+        [currentRound]: {
+          ...prev[currentRound],
+          [teamKey]: prev[currentRound][teamKey] + 1,
+        },
+      };
+    });
 
-    setRoundScores((prev) => ({
-      ...prev,
-      [currentRound]: {
-        ...prev[currentRound],
-        [teamTurn === 1 ? "team1Score" : "team2Score"]:
-          prev[currentRound][teamTurn === 1 ? "team1Score" : "team2Score"] + 1,
-      },
-    }));
-
+    // Move to next person
     handleNextPerson();
-  };
+  }, [persons, currentIndex, teamTurn, currentRound, timeLeft]);
 
-  const handleNextPerson = () => {
+  // Optimized next person selection - randomized
+  const handleNextPerson = useCallback(() => {
     if (remainingPersons.size === 0 || persons.length === 0) return;
 
-    let nextIndex = (currentIndex + 1) % persons.length;
-    while (!remainingPersons.has(persons[nextIndex].id)) {
-      nextIndex = (nextIndex + 1) % persons.length;
-      if (nextIndex === currentIndex) return; // Prevent infinite loop
+    // Get array of available IDs
+    const availableIds = Array.from(remainingPersons);
+    if (availableIds.length === 0) return;
+
+    // Select random person from remaining
+    const randomId = availableIds[Math.floor(Math.random() * availableIds.length)];
+    const nextIndex = persons.findIndex((p) => p.id === randomId);
+
+    if (nextIndex !== -1) {
+      setCurrentIndex(nextIndex);
     }
-    setCurrentIndex(nextIndex);
-  };
+  }, [persons, remainingPersons]);
 
-  const handleNextRound = async () => {
-    const nextRound = currentRound + 1;
-    setTimeLeft(60);
-    setTeamTurn((prev) => (prev === 1 ? 2 : 1));
-    setIsDrawerOpen(false);
-    setCurrentRound(nextRound);
-    setRoundScores((prev) => ({
-      ...prev,
-      [nextRound]: {
-        team1Score: 0,
-        team2Score: 0,
-      },
-    }));
-
+  // Optimized function to handle round transitions
+  const handleNextRound = useCallback(async () => {
     try {
-      await fetch("/api/game", {
-        method: "PUT",
+      // Ensure current round scores are saved
+      await fetch('/api/game', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           deviceId,
@@ -139,10 +204,51 @@ export function useGameLogic(gameStarted: boolean, deviceId: string) {
           team2Score: roundScores[currentRound].team2Score,
         }),
       });
+
+      // Prepare next round
+      const nextRound = currentRound + 1;
+
+      // Reset state for new round
+      setTimeLeft(ROUND_DURATION);
+      setTeamTurn((prev) => (prev === 1 ? 2 : 1));
+      setIsDrawerOpen(false);
+
+      // Initialize next round scores
+      setRoundScores((prev) => ({
+        ...prev,
+        [nextRound]: {
+          team1Score: 0,
+          team2Score: 0,
+        },
+      }));
+
+      // Update current round
+      setCurrentRound(nextRound);
+
+      // If few persons left, reset the pool
+      if (remainingPersons.size < 5) {
+        setRemainingPersons(new Set(persons.map((p) => p.id)));
+      }
     } catch (error) {
-      console.error("Failed to store team scores:", error);
+      console.error('Failed to store team scores:', error);
     }
-  };
+  }, [deviceId, currentRound, roundScores, persons, remainingPersons]);
+
+  // Reset game state
+  const resetGame = useCallback(() => {
+    setCurrentRound(1);
+    setTeamTurn(1);
+    setTimeLeft(ROUND_DURATION);
+    setIsDrawerOpen(false);
+    setRoundScores({
+      1: {
+        team1Score: 0,
+        team2Score: 0,
+      },
+    });
+    setRemainingPersons(new Set(persons.map((p) => p.id)));
+    setIsGameOver(false);
+  }, [persons]);
 
   return {
     persons,
@@ -153,9 +259,12 @@ export function useGameLogic(gameStarted: boolean, deviceId: string) {
     teamScores,
     remainingPersons,
     loading,
+    isGameOver,
+    currentRound,
     handleCorrectGuess,
     handleNextRound,
     roundScores,
-    currentRound,
+    resetGame,
+    MAX_ROUNDS,
   };
 }
