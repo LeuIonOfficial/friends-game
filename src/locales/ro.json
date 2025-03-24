@@ -1,0 +1,37 @@
+{
+  "common": {
+    "loading": "Se încarcă...",
+    "timeLeft": "Timp rămas: {{seconds}}s",
+    "correct": "Ghicit Corect",
+    "team1": "Echipa 1",
+    "team2": "Echipa 2"
+  },
+  "home": {
+    "title": "Introduceți numele echipelor",
+    "team1Placeholder": "Numele Echipei 1",
+    "team2Placeholder": "Numele Echipei 2",
+    "team1Required": "Numele Echipei 1 este obligatoriu",
+    "team2Required": "Numele Echipei 2 este obligatoriu",
+    "submit": "Trimite",
+    "language": "Limba"
+  },
+  "game": {
+    "startTitle": "Începe jocul",
+    "startDescription": "Pregătiți-vă să ghiciți personalități faimoase! Fiecare echipă primește {{rounds}} runde.",
+    "startButton": "Începe jocul",
+    "gameOver": "Joc terminat!",
+    "finalScores": "Scor final",
+    "wins": "{{team}} câștigă!",
+    "tie": "Este egalitate!",
+    "playAgain": "Joacă din nou",
+    "round": "Runda {{current}}/{{max}}"
+  },
+  "drawer": {
+    "roundOver": "Rundă terminată!",
+    "timeUp": "{{team}}, timpul tău s-a terminat!",
+    "switchingTo": "Se trece la {{team}}.",
+    "currentScores": "Scoruri actuale",
+    "nextRound": "Începe runda următoare",
+    "resetGame": "Resetează jocul și echipele"
+  }
+}

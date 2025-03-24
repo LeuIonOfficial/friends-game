@@ -1,0 +1,37 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "timeLeft": "Time Left: {{seconds}}s",
+    "correct": "Correct Guess",
+    "team1": "Team 1",
+    "team2": "Team 2"
+  },
+  "home": {
+    "title": "Enter Team Names",
+    "team1Placeholder": "Team 1 Name",
+    "team2Placeholder": "Team 2 Name",
+    "team1Required": "Team 1 name is required",
+    "team2Required": "Team 2 name is required",
+    "submit": "Submit",
+    "language": "Language"
+  },
+  "game": {
+    "startTitle": "Start the Game",
+    "startDescription": "Get ready to guess famous personalities! Each team gets {{rounds}} rounds.",
+    "startButton": "Start Game",
+    "gameOver": "Game Over!",
+    "finalScores": "Final Scores",
+    "wins": "{{team}} Wins!",
+    "tie": "It's a Tie!",
+    "playAgain": "Play Again",
+    "round": "Round {{current}}/{{max}}"
+  },
+  "drawer": {
+    "roundOver": "Round Over!",
+    "timeUp": "{{team}}, your time is up!",
+    "switchingTo": "Switching to {{team}}.",
+    "currentScores": "Current Scores",
+    "nextRound": "Start Next Round",
+    "resetGame": "Reset Game & Teams"
+  }
+}
