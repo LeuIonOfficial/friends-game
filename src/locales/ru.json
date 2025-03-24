@@ -1,0 +1,37 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "timeLeft": "Осталось: {{seconds}}с",
+    "correct": "Правильно",
+    "team1": "Команда 1",
+    "team2": "Команда 2"
+  },
+  "home": {
+    "title": "Введите названия команд",
+    "team1Placeholder": "Название команды 1",
+    "team2Placeholder": "Название команды 2",
+    "team1Required": "Название команды 1 обязательно",
+    "team2Required": "Название команды 2 обязательно",
+    "submit": "Отправить",
+    "language": "Язык"
+  },
+  "game": {
+    "startTitle": "Начать игру",
+    "startDescription": "Готовы угадывать знаменитостей! Каждая команда получает {{rounds}} раундов.",
+    "startButton": "Начать игру",
+    "gameOver": "Игра окончена!",
+    "finalScores": "Финальный счёт",
+    "wins": "{{team}} выигрывает!",
+    "tie": "Ничья!",
+    "playAgain": "Сыграть снова",
+    "round": "Раунд {{current}}/{{max}}"
+  },
+  "drawer": {
+    "roundOver": "Раунд окончен!",
+    "timeUp": "{{team}}, ваше время истекло!",
+    "switchingTo": "Переход к {{team}}.",
+    "currentScores": "Текущий счёт",
+    "nextRound": "Начать следующий раунд",
+    "resetGame": "Сбросить игру и команды"
+  }
+}

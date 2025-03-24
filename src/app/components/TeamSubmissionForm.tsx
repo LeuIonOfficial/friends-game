@@ -1,10 +1,12 @@
-"use client";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTeams } from "@/app/context/TeamContext";
+'use client';
+import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTeams } from '@/app/context/TeamContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface TeamSubmissionFormData {
   team1: string;
@@ -15,6 +17,7 @@ interface TeamSubmissionFormData {
 export function TeamSubmissionForm() {
   const router = useRouter();
   const { deviceId, setTeam1, setTeam2 } = useTeams();
+  const { t } = useTranslation();
 
   const {
     register,
@@ -29,9 +32,9 @@ export function TeamSubmissionForm() {
       deviceId,
     };
 
-    const response = await fetch("/api/game", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/game', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(submitData),
     });
 
@@ -41,39 +44,36 @@ export function TeamSubmissionForm() {
       router.push(`/game`);
     } else {
       const errorData = await response.json();
-      setFormError("root", {
-        type: "manual",
-        message: errorData.message || "Failed to submit teams",
+      setFormError('root', {
+        type: 'manual',
+        message: errorData.message || 'Failed to submit teams',
       });
     }
   };
 
   return (
     <Card className="w-96 m-5 shadow-xl">
-      <CardHeader>
-        <CardTitle className="text-center">Enter Team Names</CardTitle>
+      <CardHeader className="relative">
+        <div className="absolute top-3 right-3">
+          <LanguageSelector />
+        </div>
+        <CardTitle className="text-center">{t('home.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
-            placeholder="Team 1 Name"
-            {...register("team1", { required: "Team 1 name is required" })}
+            placeholder={t('home.team1Placeholder')}
+            {...register('team1', { required: t('home.team1Required') })}
           />
-          {errors.team1 && (
-            <p className="text-red-500 text-sm">{errors.team1.message}</p>
-          )}
+          {errors.team1 && <p className="text-red-500 text-sm">{errors.team1.message}</p>}
           <Input
-            placeholder="Team 2 Name"
-            {...register("team2", { required: "Team 2 name is required" })}
+            placeholder={t('home.team2Placeholder')}
+            {...register('team2', { required: t('home.team2Required') })}
           />
-          {errors.team2 && (
-            <p className="text-red-500 text-sm">{errors.team2.message}</p>
-          )}
-          {errors.root && (
-            <p className="text-red-500 text-sm">{errors.root.message}</p>
-          )}
+          {errors.team2 && <p className="text-red-500 text-sm">{errors.team2.message}</p>}
+          {errors.root && <p className="text-red-500 text-sm">{errors.root.message}</p>}
           <Button type="submit" className="w-full">
-            Submit
+            {t('home.submit')}
           </Button>
         </form>
       </CardContent>
