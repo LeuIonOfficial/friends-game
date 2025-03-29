@@ -8,6 +8,7 @@ import { useGameLogic } from '@/app/hooks/useGameLogic';
 import Loading from '@/app/components/ui/Loading';
 import TimerToast from '@/app/components/TimerToast';
 import { useTeams } from '@/app/context/TeamContext';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import {
 export default function PublicPersonsGame() {
   const { team1, team2, deviceId } = useTeams();
   const [gameStarted, setGameStarted] = useState(false);
+  const { t } = useTranslation();
 
   const {
     persons,
@@ -29,7 +31,6 @@ export default function PublicPersonsGame() {
     teamScores,
     loading,
     isGameOver,
-    currentRound,
     MAX_ROUNDS,
     handleCorrectGuess,
     handleNextRound,
@@ -74,12 +75,12 @@ export default function PublicPersonsGame() {
             className="w-full"
             disabled={timeLeft === 0}
           >
-            Correct Guess
+            {t('common.correct')}
           </Button>
         </CardContent>
       </Card>
     );
-  }, [currentIndex, persons, teamTurn, team1, team2, handleCorrectGuess, timeLeft]);
+  }, [currentIndex, persons, teamTurn, team1, team2, handleCorrectGuess, timeLeft, t]);
 
   if (loading) return <Loading />;
 
@@ -95,13 +96,13 @@ export default function PublicPersonsGame() {
       <Dialog open={!gameStarted && !isGameOver}>
         <DialogContent className="text-center">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Start the Game</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center">
+              {t('game.startTitle')}
+            </DialogTitle>
           </DialogHeader>
-          <p className="text-gray-600">
-            Get ready to guess famous personalities! Each team gets {MAX_ROUNDS} rounds.
-          </p>
+          <p className="text-gray-600">{t('game.startDescription', { rounds: MAX_ROUNDS })}</p>
           <Button onClick={handleStartGame} className="w-full mt-4">
-            Start Game
+            {t('game.startButton')}
           </Button>
         </DialogContent>
       </Dialog>
@@ -110,10 +111,10 @@ export default function PublicPersonsGame() {
       <Dialog open={isGameOver}>
         <DialogContent className="text-center">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Game Over!</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{t('game.gameOver')}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <h3 className="text-xl font-semibold text-primary mb-4">Final Scores</h3>
+            <h3 className="text-xl font-semibold text-primary mb-4">{t('game.finalScores')}</h3>
             <div className="flex justify-between mb-4 font-bold text-lg">
               <p className="text-blue-600">
                 {team1}: {teamScores.team1}
@@ -124,15 +125,15 @@ export default function PublicPersonsGame() {
             </div>
             <p className="text-xl font-bold">
               {teamScores.team1 > teamScores.team2
-                ? `${team1} Wins!`
+                ? t('game.wins', { team: team1 })
                 : teamScores.team2 > teamScores.team1
-                  ? `${team2} Wins!`
-                  : "It's a Tie!"}
+                  ? t('game.wins', { team: team2 })
+                  : t('game.tie')}
             </p>
           </div>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button onClick={handleRestartGame} className="w-full">
-              Play Again
+              {t('game.playAgain')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -140,24 +141,7 @@ export default function PublicPersonsGame() {
 
       {/* Game Content - Hidden Until Game Starts */}
       {gameStarted && !isGameOver && (
-        <div className="max-w-md w-full mt-4 rounded-lg p-4">
-          <div className="mb-4 text-center">
-            <div className="flex justify-between items-center px-4 py-2 bg-white rounded-lg shadow mb-4">
-              <div className="text-blue-600 font-semibold">
-                {team1}: {teamScores.team1}
-              </div>
-              <div className="px-2 py-1 bg-gray-200 rounded-md text-sm font-medium">
-                Round {currentRound}/{MAX_ROUNDS}
-              </div>
-              <div className="text-green-600 font-semibold">
-                {team2}: {teamScores.team2}
-              </div>
-            </div>
-          </div>
-
-          {/* Person Card */}
-          {PersonCard}
-        </div>
+        <div className="max-w-md w-full mt-4 rounded-lg p-4">{PersonCard}</div>
       )}
 
       <GameDrawer

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TimerToastProps {
   timeLeft: number;
@@ -10,6 +11,7 @@ interface TimerToastProps {
 const TimerToast = memo(function TimerToast({ timeLeft }: TimerToastProps) {
   const [visible, setVisible] = useState(true);
   const [isLowTime, setIsLowTime] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (timeLeft === 0) {
@@ -32,17 +34,17 @@ const TimerToast = memo(function TimerToast({ timeLeft }: TimerToastProps) {
   return (
     <div
       className={`
-        fixed top-5 right-5 
-        ${getColorClass()} 
-        text-white px-6 py-3 
-        rounded-lg shadow-xl 
-        text-lg font-semibold 
+        fixed top-5 right-5
+        ${getColorClass()}
+        text-white px-6 py-3
+        rounded-lg shadow-xl
+        text-lg font-semibold
         transition-all duration-500
         ${isLowTime ? 'animate-bounce' : ''}
         ${isLowTime ? 'scale-110' : ''}
       `}
     >
-      ⏳ Time Left: {timeLeft}s
+      ⏳ {t('common.timeLeft', { seconds: timeLeft })}
     </div>
   );
 });
