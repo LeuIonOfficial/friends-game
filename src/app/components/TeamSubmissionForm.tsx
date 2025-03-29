@@ -55,6 +55,7 @@ export function TeamSubmissionForm() {
         });
       }
     } catch (error) {
+      console.error(error);
       setFormError('root', {
         type: 'manual',
         message: 'An unexpected error occurred',
