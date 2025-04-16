@@ -38,6 +38,7 @@ export function useGameLogic(gameStarted: boolean, deviceId: string) {
       team2Score: 0,
     },
   });
+
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [remainingPersons, setRemainingPersons] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState<boolean>(true);
