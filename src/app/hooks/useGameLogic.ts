@@ -31,6 +31,7 @@ export function useGameLogic(gameStarted: boolean, deviceId: string) {
   const [timeLeft, setTimeLeft] = useState<number>(ROUND_DURATION);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [teamTurn, setTeamTurn] = useState<number>(1);
+
   const [roundScores, setRoundScores] = useState<RoundScores>({
     1: {
       team1Score: 0,
