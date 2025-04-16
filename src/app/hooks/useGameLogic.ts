@@ -25,8 +25,6 @@ interface RoundScores {
 const ROUND_DURATION = 60; // seconds
 const MAX_ROUNDS = 10;
 
-// TODO: check something
-
 export function useGameLogic(gameStarted: boolean, deviceId: string) {
   const [persons, setPersons] = useState<Person[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
